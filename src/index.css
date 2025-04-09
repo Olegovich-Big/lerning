@@ -3,14 +3,7 @@
   margin: 0;
   padding: 0;
 }
-body {
-  height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
@@ -22,7 +15,7 @@ code {
 @import url('https://fonts.googleapis.com/css2?family=Oxygen&display=swap');
 
 .body{
-  min-height: 100%;
+ 
   display: flex;
   flex-direction: column;
 }
@@ -74,60 +67,88 @@ code {
 .header_button_active{background-color: rgb(240, 236, 236); }
 .header_button:hover { background-color: rgb(240, 236, 236); }
 .btn {
-  border-radius: 5px;
-  text-decoration: none;
-  margin-top: 10px;
-  padding: 10px 15px;
-  background-color: black;
-  color: #ffffff;
+  background-color: rgb(247, 227, 5);
   border: none;
+  border-radius: 6px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  color: #000;
   cursor: pointer;
-  font-family: "oxygen";
-  font-size: 15px;
-  font-weight: 400;
-  line-height: 20px;
+  display: inline-block;
+  font-family: "Oxygen";
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-top: 10px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 12px 24px;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.3s ease;
 }
-.btn:hover { background-color: rgb(247, 227, 5); color: black;}
+.btn:hover { 
+  background-color: rgb(255, 235, 0); 
+  color: black;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
+}
+.btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
 
-.HomePage{
-  margin-bottom: 20px;
+.HomePage {
+  padding: 60px 0;
   display: flex;
   justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  background-color: #fafafa;
 }
+
 .HomePage_content {
-  width: 78%;
+  width: 90%;
+  max-width: 1000px;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
-.HomePage_text{
+
+.HomePage_text {
   text-decoration: none;
   font-weight: 400;
   line-height: 20px;
-  
+  max-width: 800px;
+  text-align: center;
 }
-.HomePage_text p{
+
+.HomePage_text p {
   font-family: "oxygen";
-  margin-bottom: 25px;
-  font-size: 25px;
-  line-height: 1;
-  color: #2e2e2e;
-  opacity: 80%;
-  letter-spacing: 1px;
+  margin-bottom: 30px;
+  font-size: 22px;
+  line-height: 1.4;
+  color: #333;
+  max-width: 100%;
+  letter-spacing: 0.5px;
+  margin-left: auto;
+  margin-right: auto;
 }
-.HomePage_text h1{
-  margin: 15px 0;
+
+.HomePage_text h1 {
+  margin: 20px auto 25px;
   font-family: "lora";
-  font-size: 38px;
-  color: #2e2e2e;
-  line-height: 51px;
-  letter-spacing: 2px;
+  font-size: 40px;
+  font-weight: 700;
+  color: #222;
+  line-height: 1.3;
+  letter-spacing: 0.5px;
+  max-width: 100%;
 }
+
 .HomePage_text button{
   padding: 15px;
   margin: 20px 0;
-}
-.HomePage_img{
-  width: 50%;
 }
 
 .footer {
@@ -176,4 +197,35 @@ code {
   line-height: 26px;
   letter-spacing: 1px;
   text-align: right;
+}
+
+/* Медиа-запрос для мобильных устройств */
+@media (max-width: 768px) {
+  .HomePage_content {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .HomePage_text {
+    max-width: 100%;
+    padding-right: 0;
+    margin-top: 30px;
+  }
+  
+  .HomePage_text p,
+  .HomePage_text h1 {
+    max-width: 100%;
+  }
+  
+  .btn {
+    display: inline-block;
+    margin-top: 20px;
+  }
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 10px;
 }

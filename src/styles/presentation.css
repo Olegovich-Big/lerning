@@ -100,21 +100,30 @@
 
 .add-slide-button {
   width: 100%;
-  padding: 10px;
-  background-color: white;
-  border: 1px dashed #ccc;
-  border-radius: 4px;
+  padding: 12px;
+  background-color: rgb(247, 227, 5);
+  color: #000;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 15px;
-  color: #333;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .add-slide-button:hover {
-  background-color: rgb(247, 227, 5);
-  color: black;
+  background-color: rgb(255, 235, 0);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.add-slide-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .workspace {
@@ -195,18 +204,27 @@
 }
 
 .toolbar-button {
-  padding: 8px 12px;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 8px 15px;
+  background-color: rgb(247, 227, 5);
+  border: none;
+  border-radius: 6px;
   margin-right: 10px;
   cursor: pointer;
-  color: #333;
+  color: #000;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .toolbar-button:hover {
-  background-color: rgb(247, 227, 5);
-  color: black;
+  background-color: rgb(255, 235, 0);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.toolbar-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .toolbar-separator {
@@ -216,12 +234,7 @@
 }
 
 .data-selector {
-  display: flex;
-  justify-content: center;
-  padding: 10px;
-  background-color: white;
-  gap: 10px;
-  border-bottom: 1px solid #ddd;
+  display: none;
 }
 
 .data-type-button {
@@ -359,4 +372,228 @@
   flex: 1 0 auto;
   display: flex;
   flex-direction: column;
+}
+
+/* Новые стили для контейнера миниатюры слайда */
+.slide-thumbnail-container {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+/* Стиль для кнопки удаления слайда */
+.delete-slide-button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background-color: rgba(255, 0, 0, 0.7);
+  color: white;
+  border: none;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.slide-thumbnail-container:hover .delete-slide-button {
+  opacity: 1;
+}
+
+/* Стиль для контейнера рабочей области */
+.workspace-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Улучшенный стиль для инструментов слайда */
+.slide-tools {
+  display: flex;
+  padding: 12px 15px;
+  background-color: #f8f8f8;
+  border-bottom: 1px solid #ddd;
+  gap: 12px;
+}
+
+/* Улучшенные стили для кнопок инструментов */
+.tool-button {
+  padding: 8px 15px;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #333;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+}
+
+.tool-button:hover {
+  background-color: rgb(247, 227, 5);
+  color: black;
+  border-color: rgb(247, 227, 5);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.tool-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Стили для инструментов изменения фона */
+.background-tools {
+  position: relative;
+  display: inline-block;
+}
+
+.background-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  min-width: 150px;
+}
+
+.background-tools:hover .background-dropdown {
+  display: block;
+}
+
+.background-dropdown button {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.background-dropdown button:hover {
+  background-color: rgb(247, 227, 5);
+}
+
+/* Стиль для пустой рабочей области */
+.empty-workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  color: #666;
+  background-color: #f0f0f0;
+}
+
+.empty-workspace p {
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: #555;
+}
+
+/* Контейнер для кнопки создания слайда */
+.create-slide-container {
+  background-color: white;
+  border-radius: 10px;
+  padding: 25px;
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+/* Интерактивность элементов слайда */
+.slide-element {
+  position: absolute;
+  cursor: move;
+  user-select: none;
+}
+
+.slide-element.text {
+  border: 1px solid transparent;
+  cursor: text;
+  padding: 5px;
+}
+
+.slide-element.text:hover {
+  border: 1px dashed rgb(247, 227, 5);
+}
+
+.slide-element.text:focus {
+  border: 1px solid rgb(247, 227, 5);
+  outline: none;
+}
+
+.slide-element.image {
+  border: 1px solid transparent;
+}
+
+.slide-element.image:hover {
+  border: 1px dashed rgb(247, 227, 5);
+}
+
+/* Стили для drag-and-drop элементов */
+.slide-element.dragging {
+  opacity: 0.7;
+  z-index: 100;
+}
+
+/* Стили для редактируемого названия презентации */
+.presentation-title[contenteditable="true"] {
+  cursor: text;
+  background-color: rgba(51, 51, 51, 0.5);
+  padding: 5px;
+}
+
+.presentation-title {
+  cursor: pointer;
+}
+
+/* Стили для редактора текста на слайде */
+.text-editor {
+  border: none;
+  outline: none;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  resize: none;
+  overflow: hidden;
+}
+
+/* Улучшенный стиль для кнопки создания слайда в пустой рабочей области */
+.empty-workspace .add-slide-button {
+  background-color: rgb(247, 227, 5);
+  color: #000;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-workspace .add-slide-button:hover {
+  background-color: rgb(255, 235, 0);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.empty-workspace .add-slide-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 } 

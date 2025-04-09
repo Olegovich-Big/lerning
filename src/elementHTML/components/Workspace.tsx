@@ -1,13 +1,23 @@
 import React from 'react';
 import { Slide, Size, Background, BackgroundType } from '../../test';
 import SlideElement from './SlideElement';
+import styles from './Workspace.module.css';
 
 interface WorkspaceProps {
   currentSlide: Slide | null;
   workspaceSize: Size;
+  onDeleteElement?: (elementId: string) => void;
+  onUpdateElementText?: (elementId: string, newText: string) => void;
+  onUpdateElementPosition?: (elementId: string, x: number, y: number) => void;
 }
 
-const Workspace: React.FC<WorkspaceProps> = ({ currentSlide, workspaceSize }) => {
+const Workspace: React.FC<WorkspaceProps> = ({ 
+  currentSlide, 
+  workspaceSize,
+  onDeleteElement,
+  onUpdateElementText,
+  onUpdateElementPosition
+}) => {
   const renderBackground = (background: Background | null) => {
     if (!background) {
       return { backgroundColor: 'white' };
@@ -38,10 +48,10 @@ const Workspace: React.FC<WorkspaceProps> = ({ currentSlide, workspaceSize }) =>
 
   if (!currentSlide) {
     return (
-      <div className="workspace">
-        <div className="empty-presentation">
+      <div className={styles.workspace}>
+        <div className={styles.emptyPresentation}>
           <h2>Презентация не содержит слайдов</h2>
-          <button className="create-slide-button">Добавить слайд</button>
+          <button className={styles.createButton}>Добавить слайд</button>
         </div>
       </div>
     );
@@ -53,13 +63,19 @@ const Workspace: React.FC<WorkspaceProps> = ({ currentSlide, workspaceSize }) =>
   };
 
   return (
-    <div className="workspace">
-      <div className="slide-workspace" style={slideStyle}>
+    <div className={styles.workspace}>
+      <div className={styles.slideWorkspace} style={slideStyle}>
         {currentSlide.elements.length === 0 ? (
-          <div className="empty-slide">Пустой слайд. Добавьте текст или изображение.</div>
+          <div className={styles.emptySlide}>Пустой слайд. Добавьте текст или изображение.</div>
         ) : (
           currentSlide.elements.map(element => (
-            <SlideElement key={element.id} element={element} />
+            <SlideElement 
+              key={element.id} 
+              element={element} 
+              onDelete={onDeleteElement}
+              onUpdateText={onUpdateElementText}
+              onUpdatePosition={onUpdateElementPosition}
+            />
           ))
         )}
       </div>
