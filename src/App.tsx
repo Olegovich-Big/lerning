@@ -4,6 +4,10 @@ import ConstElemHTML from './elementHTML/const_elemHTML';
 import HomePage from './elementHTML/home_page';
 import WorkZona from './elementHTML/work_zona';
 import Presents from './elementHTML/presents';
+import './index.css';
+
+// Читаем содержимое файла
+
 function App() {
   return (
     <div className='body'>

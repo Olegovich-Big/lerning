@@ -13,7 +13,7 @@ function HomePage() {
                     <Link className="btn" to='/work'>Создать презентацию</Link>
                 </div>
                 
-                <img src={require('../image/popa.png')} className='HomePage_img'/>
+                <img src={require('../image/popa.png')} className='HomePage_img' alt="Презентация"/>
             </div>
         </div>
     );

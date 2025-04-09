@@ -2,8 +2,11 @@ import React from 'react';
 
 function WorkZona(){
     return(
-        <div className='HomePage_text'>
-            <h1>WORK ПЕНИС БОЛЬШОЙ</h1>
+        <div className='work-page-container'>
+            <div className='work-content'>
+                <h1>Рабочая зона</h1>
+                <p>Здесь будет редактор презентаций</p>
+            </div>
         </div>
     )
 }
