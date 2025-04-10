@@ -1,45 +1,59 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import '../styles/presentation.css';
 import SlideElement from './components/SlideElement';
 import SlideThumbnail from './components/SlideThumbnail';
 import Workspace from './components/Workspace';
 import Editor from '../components/Editor';
 import { 
-  Presentation, 
-  Slide, 
   BackgroundType, 
-  ElementType, 
-  TextObj, 
-  ImgObj,
-  Background
+  ElementType,
+  Background,
+  SolidBackground,
+  ImageBackground
 } from '../test';
-import { saveToLocalStorage, loadFromLocalStorage, hasLocalStorageData } from '../utils/localStorage';
+import { loadFromLocalStorage, hasLocalStorageData } from '../utils/localStorage';
 import { exportPresentation, importPresentation } from '../utils/fileOperations';
-import { validateAndGetPresentation, validatePresentationData } from '../utils/validator';
+import { validateAndGetPresentation } from '../utils/validator';
+import { RootState } from '../redux/reducers';
+import {
+  setPresentation,
+  changeTitle,
+  addSlide,
+  deleteSlide,
+  moveSlide,
+  updateSlideBackground,
+  addText,
+  addImage,
+  deleteElement,
+  updateElementText,
+  updateElementPosition,
+  updateElementSize,
+  setCurrentSlideIndex,
+  setSelectedElementId,
+  setValidationError,
+  setEditingTitle,
+  setDraggedSlideIndex
+} from '../redux/actions';
 
 function Presents() {
-  // Создаем пустую презентацию
-  const [presentation, setPresentation] = useState<Presentation>({
-    title: "Новая презентация",
-    slides: [],
-    sizeWorkspace: { width: 800, height: 600 }
-  });
+  const dispatch = useDispatch();
   
-  // Состояние для текущего выбранного слайда
-  const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(-1);
+  // Получаем данные из Redux-стейта
+  const presentation = useSelector((state: RootState) => state.presentation);
+  const {
+    currentSlideIndex,
+    selectedElementId,
+    isEditingTitle,
+    draggedSlideIndex,
+    validationError
+  } = useSelector((state: RootState) => state.ui);
   
-  // Состояние для редактирования имени презентации
-  const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
-  
-  // Состояние для отслеживания перетаскиваемого слайда
-  const [draggedSlideIndex, setDraggedSlideIndex] = useState<number | null>(null);
-  
-  // Состояние для отслеживания выбранного элемента
-  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
-  
-  // Состояние для отображения ошибок валидации
-  const [validationError, setValidationError] = useState<string | null>(null);
+  // Получение текущего слайда
+  const currentSlide = 
+    currentSlideIndex >= 0 && presentation.slides.length > currentSlideIndex 
+      ? presentation.slides[currentSlideIndex] 
+      : null;
   
   // Загрузка данных из localStorage при монтировании
   useEffect(() => {
@@ -50,17 +64,17 @@ function Presents() {
           // Проверяем валидность данных перед загрузкой
           try {
             const validatedData = validateAndGetPresentation(savedData);
-            setPresentation(validatedData);
-            setValidationError(null);
+            dispatch(setPresentation(validatedData));
+            dispatch(setValidationError(null));
             // Установка первого слайда как активного, если он есть
             if (validatedData.slides.length > 0) {
-              setCurrentSlideIndex(0);
+              dispatch(setCurrentSlideIndex(0));
             }
           } catch (error) {
             if (error instanceof Error) {
-              setValidationError(error.message);
+              dispatch(setValidationError(error.message));
             } else {
-              setValidationError('Ошибка валидации данных');
+              dispatch(setValidationError('Ошибка валидации данных'));
             }
             console.error('Ошибка валидации данных из localStorage:', error);
           }
@@ -69,81 +83,45 @@ function Presents() {
         console.error('Ошибка при загрузке из localStorage:', error);
       }
     }
-  }, []);
-  
-  // Сохранение в localStorage при изменении презентации
-  useEffect(() => {
-    saveToLocalStorage(presentation);
-  }, [presentation]);
-  
-  // Получение текущего слайда
-  const currentSlide = 
-    currentSlideIndex >= 0 && presentation.slides.length > currentSlideIndex 
-      ? presentation.slides[currentSlideIndex] 
-      : null;
+  }, [dispatch]);
   
   // Функция создания нового слайда
-  const addNewSlide = () => {
-    const newSlide: Slide = {
-      id: uuidv4(),
-      elements: [],
-      background: { type: BackgroundType.color, color: '#FFFFFF' }
-    };
-    
-    const newSlides = [...presentation.slides, newSlide];
-    setPresentation({...presentation, slides: newSlides});
-    setCurrentSlideIndex(newSlides.length - 1);
+  const handleAddNewSlide = () => {
+    dispatch(addSlide());
+    if (presentation.slides.length === 0) {
+      dispatch(setCurrentSlideIndex(0));
+    } else {
+      dispatch(setCurrentSlideIndex(presentation.slides.length));
+    }
   };
   
   // Функция удаления слайда
-  const deleteSlide = (slideIndex: number) => {
+  const handleDeleteSlide = (slideIndex: number) => {
     if (slideIndex < 0 || slideIndex >= presentation.slides.length) return;
     
-    const newSlides = [...presentation.slides];
-    newSlides.splice(slideIndex, 1);
-    
-    setPresentation({...presentation, slides: newSlides});
+    dispatch(deleteSlide(slideIndex));
     
     // Корректируем текущий индекс слайда
-    if (currentSlideIndex >= newSlides.length) {
-      setCurrentSlideIndex(newSlides.length > 0 ? newSlides.length - 1 : -1);
+    if (currentSlideIndex >= presentation.slides.length - 1) {
+      const newSlideIndex = presentation.slides.length > 1 ? presentation.slides.length - 2 : -1;
+      dispatch(setCurrentSlideIndex(newSlideIndex));
     }
   };
   
   // Функция изменения названия презентации
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPresentation({...presentation, title: e.target.value});
+    dispatch(changeTitle(e.target.value));
   };
   
   // Функция добавления текста
-  const addText = () => {
-    if (!currentSlide) return;
-    
-    const newTextElement: TextObj = {
-      id: uuidv4(),
-      type: ElementType.text,
-      text: "Новый текст",
-      fontSize: 16,
-      fontFamily: "Arial",
-      color: "#000000",
-      pos: { x: 50, y: 50 },
-      size: { width: 200, height: 100 }
-    };
-    
-    const updatedSlide = {
-      ...currentSlide,
-      elements: [...currentSlide.elements, newTextElement]
-    };
-    
-    const newSlides = [...presentation.slides];
-    newSlides[currentSlideIndex] = updatedSlide;
-    
-    setPresentation({...presentation, slides: newSlides});
+  const handleAddText = () => {
+    if (currentSlideIndex === -1) return;
+    dispatch(addText(currentSlideIndex));
   };
   
   // Функция добавления изображения
-  const addImage = () => {
-    if (!currentSlide) return;
+  const handleAddImage = () => {
+    if (currentSlideIndex === -1) return;
     
     // Открываем диалог выбора файла
     const input = document.createElement('input');
@@ -159,23 +137,8 @@ function Presents() {
         reader.onload = (event) => {
           if (!event.target) return;
           
-          const newImageElement: ImgObj = {
-            id: uuidv4(),
-            type: ElementType.image,
-            src: event.target.result as string,
-            pos: { x: 50, y: 150 },
-            size: { width: 300, height: 200 }
-          };
-          
-          const updatedSlide = {
-            ...currentSlide!,
-            elements: [...currentSlide!.elements, newImageElement]
-          };
-          
-          const newSlides = [...presentation.slides];
-          newSlides[currentSlideIndex] = updatedSlide;
-          
-          setPresentation({...presentation, slides: newSlides});
+          const src = event.target.result as string;
+          dispatch(addImage(currentSlideIndex, src));
         };
         
         reader.readAsDataURL(file);
@@ -186,69 +149,32 @@ function Presents() {
   };
   
   // Функция удаления элемента
-  const deleteElement = (elementId: string) => {
-    if (!currentSlide) return;
-    
-    const updatedElements = currentSlide.elements.filter(el => el.id !== elementId);
-    
-    const updatedSlide = {
-      ...currentSlide,
-      elements: updatedElements
-    };
-    
-    const newSlides = [...presentation.slides];
-    newSlides[currentSlideIndex] = updatedSlide;
-    
-    setPresentation({...presentation, slides: newSlides});
+  const handleDeleteElement = (elementId: string) => {
+    if (currentSlideIndex === -1) return;
+    dispatch(deleteElement(currentSlideIndex, elementId));
   };
   
   // Функция обновления текста элемента
-  const updateElementText = (elementId: string, newText: string) => {
-    if (!currentSlide) return;
-    
-    const updatedElements = currentSlide.elements.map(element => 
-      element.id === elementId && element.type === ElementType.text
-        ? { ...element, text: newText } as TextObj
-        : element
-    );
-    
-    const updatedSlide = {
-      ...currentSlide,
-      elements: updatedElements
-    };
-    
-    const newSlides = [...presentation.slides];
-    newSlides[currentSlideIndex] = updatedSlide;
-    
-    setPresentation({...presentation, slides: newSlides});
+  const handleUpdateElementText = (elementId: string, text: string) => {
+    if (currentSlideIndex === -1) return;
+    dispatch(updateElementText(currentSlideIndex, elementId, text));
   };
   
   // Функция обновления позиции элемента
-  const updateElementPosition = (elementId: string, x: number, y: number) => {
-    if (!currentSlide) return;
-    
-    const updatedElements = currentSlide.elements.map(element => 
-      element.id === elementId
-        ? { ...element, pos: { x, y } }
-        : element
-    );
-    
-    const updatedSlide = {
-      ...currentSlide,
-      elements: updatedElements
-    };
-    
-    const newSlides = [...presentation.slides];
-    newSlides[currentSlideIndex] = updatedSlide;
-    
-    setPresentation({...presentation, slides: newSlides});
+  const handleUpdateElementPosition = (elementId: string, x: number, y: number) => {
+    if (currentSlideIndex === -1) return;
+    dispatch(updateElementPosition(currentSlideIndex, elementId, x, y));
+  };
+  
+  // Функция обновления размера элемента
+  const handleUpdateElementSize = (elementId: string, width: number, height: number) => {
+    if (currentSlideIndex === -1) return;
+    dispatch(updateElementSize(currentSlideIndex, elementId, width, height));
   };
   
   // Функция изменения фона слайда
-  const changeBackground = (backgroundType: BackgroundType) => {
-    if (!currentSlide) return;
-    
-    let newBackground: Background;
+  const handleChangeBackground = (backgroundType: BackgroundType) => {
+    if (currentSlideIndex === -1) return;
     
     switch (backgroundType) {
       case BackgroundType.color:
@@ -259,12 +185,12 @@ function Presents() {
         colorPicker.onchange = (e: Event) => {
           const target = e.target as HTMLInputElement;
           
-          newBackground = {
+          const newBackground: SolidBackground = {
             type: BackgroundType.color,
             color: target.value
           };
           
-          updateSlideBackground(newBackground);
+          dispatch(updateSlideBackground(currentSlideIndex, newBackground));
         };
         
         colorPicker.click();
@@ -284,12 +210,12 @@ function Presents() {
             reader.onload = (event) => {
               if (!event.target) return;
               
-              newBackground = {
+              const newBackground: ImageBackground = {
                 type: BackgroundType.image,
                 url: event.target.result as string
               };
               
-              updateSlideBackground(newBackground);
+              dispatch(updateSlideBackground(currentSlideIndex, newBackground));
             };
             
             reader.readAsDataURL(file);
@@ -301,45 +227,9 @@ function Presents() {
     }
   };
   
-  // Функция обновления фона слайда
-  const updateSlideBackground = (background: Background) => {
-    if (!currentSlide) return;
-    
-    const updatedSlide = {
-      ...currentSlide,
-      background
-    };
-    
-    const newSlides = [...presentation.slides];
-    newSlides[currentSlideIndex] = updatedSlide;
-    
-    setPresentation({...presentation, slides: newSlides});
-  };
-  
-  // Функция обновления размера элемента
-  const updateElementSize = (elementId: string, width: number, height: number) => {
-    if (!currentSlide) return;
-    
-    const updatedElements = currentSlide.elements.map(element => 
-      element.id === elementId
-        ? { ...element, size: { width, height } }
-        : element
-    );
-    
-    const updatedSlide = {
-      ...currentSlide,
-      elements: updatedElements
-    };
-    
-    const newSlides = [...presentation.slides];
-    newSlides[currentSlideIndex] = updatedSlide;
-    
-    setPresentation({...presentation, slides: newSlides});
-  };
-  
   // Обработчики для перетаскивания слайдов
   const handleSlideDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
-    setDraggedSlideIndex(index);
+    dispatch(setDraggedSlideIndex(index));
   };
 
   const handleSlideDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -350,46 +240,19 @@ function Presents() {
     e.preventDefault();
     
     if (draggedSlideIndex !== null && draggedSlideIndex !== targetIndex) {
-      // Копируем массив слайдов
-      const newSlides = [...presentation.slides];
-      
-      // Получаем перемещаемый слайд
-      const [draggedSlide] = newSlides.splice(draggedSlideIndex, 1);
-      
-      // Вставляем его на новую позицию
-      newSlides.splice(targetIndex, 0, draggedSlide);
-      
-      // Обновляем презентацию
-      setPresentation({...presentation, slides: newSlides});
-      
-      // Корректируем текущий индекс слайда
-      if (currentSlideIndex === draggedSlideIndex) {
-        setCurrentSlideIndex(targetIndex);
-      } else if (
-        currentSlideIndex > draggedSlideIndex && 
-        currentSlideIndex <= targetIndex
-      ) {
-        setCurrentSlideIndex(currentSlideIndex - 1);
-      } else if (
-        currentSlideIndex < draggedSlideIndex && 
-        currentSlideIndex >= targetIndex
-      ) {
-        setCurrentSlideIndex(currentSlideIndex + 1);
-      }
-      
-      // Сбрасываем состояние перетаскивания
-      setDraggedSlideIndex(null);
+      dispatch(moveSlide(draggedSlideIndex, targetIndex));
+      dispatch(setDraggedSlideIndex(null));
     }
   };
   
   // Функция выбора элемента
   const handleSelectElement = (elementId: string) => {
-    setSelectedElementId(elementId);
+    dispatch(setSelectedElementId(elementId));
   };
   
   // Функция клика по рабочей области
   const handleWorkspaceClick = () => {
-    setSelectedElementId(null);
+    dispatch(setSelectedElementId(null));
   };
   
   // Функция экспорта презентации
@@ -410,20 +273,20 @@ function Presents() {
       // Валидация импортированных данных
       try {
         const validatedData = validateAndGetPresentation(importedData);
-        setPresentation(validatedData);
-        setValidationError(null);
+        dispatch(setPresentation(validatedData));
+        dispatch(setValidationError(null));
         
         // Установка первого слайда как активного, если он есть
         if (validatedData.slides.length > 0) {
-          setCurrentSlideIndex(0);
+          dispatch(setCurrentSlideIndex(0));
         } else {
-          setCurrentSlideIndex(-1);
+          dispatch(setCurrentSlideIndex(-1));
         }
       } catch (error) {
         if (error instanceof Error) {
-          setValidationError(error.message);
+          dispatch(setValidationError(error.message));
         } else {
-          setValidationError('Ошибка валидации импортированных данных');
+          dispatch(setValidationError('Ошибка валидации импортированных данных'));
         }
         console.error('Ошибка валидации импортированных данных:', error);
         alert('Импортированный файл не соответствует формату презентации');
@@ -434,6 +297,7 @@ function Presents() {
     }
   };
   
+  // В render оставляем интерфейс тем же, но меняем обработчики на связанные с Redux
   return (
     <div className="presentation-container">
       {/* Заголовок презентации */}
@@ -444,14 +308,14 @@ function Presents() {
             className="presentation-title" 
             value={presentation.title} 
             onChange={handleTitleChange} 
-            onBlur={() => setIsEditingTitle(false)}
-            onKeyDown={(e) => e.key === 'Enter' && setIsEditingTitle(false)}
+            onBlur={() => dispatch(setEditingTitle(false))}
+            onKeyDown={(e) => e.key === 'Enter' && dispatch(setEditingTitle(false))}
             autoFocus
           />
         ) : (
           <div 
             className="presentation-title" 
-            onClick={() => setIsEditingTitle(true)}
+            onClick={() => dispatch(setEditingTitle(true))}
           >
             {presentation.title}
           </div>
@@ -466,7 +330,7 @@ function Presents() {
       {validationError && (
         <div className="validation-error">
           Ошибка: {validationError}
-          <button onClick={() => setValidationError(null)}>✕</button>
+          <button onClick={() => dispatch(setValidationError(null))}>✕</button>
         </div>
       )}
       
@@ -474,7 +338,7 @@ function Presents() {
       <div className="presentation-body">
         {/* Боковая панель со слайдами */}
         <div className="slides-sidebar">
-          <button className="add-slide-button" onClick={addNewSlide}>+ Добавить слайд</button>
+          <button className="add-slide-button" onClick={handleAddNewSlide}>+ Добавить слайд</button>
           
           {presentation.slides.map((slide, index) => (
             <div key={slide.id} className="slide-thumbnail-container">
@@ -482,14 +346,14 @@ function Presents() {
                 slide={slide}
                 index={index}
                 isActive={index === currentSlideIndex}
-                onClick={() => setCurrentSlideIndex(index)}
+                onClick={() => dispatch(setCurrentSlideIndex(index))}
                 onDragStart={(e, idx) => handleSlideDragStart(e, idx)}
                 onDragOver={handleSlideDragOver}
                 onDrop={(e, idx) => handleSlideDrop(e, idx)}
               />
               <button 
                 className="delete-slide-button"
-                onClick={() => deleteSlide(index)}
+                onClick={() => handleDeleteSlide(index)}
               >
                 ×
               </button>
@@ -502,18 +366,18 @@ function Presents() {
           {currentSlide ? (
             <>
               <div className="slide-tools">
-                <button onClick={addText} className="tool-button">Добавить текст</button>
-                <button onClick={addImage} className="tool-button">Добавить изображение</button>
+                <button onClick={handleAddText} className="tool-button">Добавить текст</button>
+                <button onClick={handleAddImage} className="tool-button">Добавить изображение</button>
                 <div className="background-tools">
                   <button className="tool-button">Фон</button>
                   <div className="background-dropdown">
-                    <button onClick={() => changeBackground(BackgroundType.color)}>Цвет</button>
-                    <button onClick={() => changeBackground(BackgroundType.image)}>Изображение</button>
+                    <button onClick={() => handleChangeBackground(BackgroundType.color)}>Цвет</button>
+                    <button onClick={() => handleChangeBackground(BackgroundType.image)}>Изображение</button>
                   </div>
                 </div>
                 {selectedElementId && (
                   <button 
-                    onClick={() => deleteElement(selectedElementId)} 
+                    onClick={() => handleDeleteElement(selectedElementId)} 
                     className="tool-button"
                   >
                     Удалить элемент
@@ -523,10 +387,10 @@ function Presents() {
               <Workspace 
                 currentSlide={currentSlide}
                 workspaceSize={presentation.sizeWorkspace}
-                onDeleteElement={deleteElement}
-                onUpdateElementText={updateElementText}
-                onUpdateElementPosition={updateElementPosition}
-                onUpdateElementSize={updateElementSize}
+                onDeleteElement={handleDeleteElement}
+                onUpdateElementText={handleUpdateElementText}
+                onUpdateElementPosition={handleUpdateElementPosition}
+                onUpdateElementSize={handleUpdateElementSize}
                 selectedElementId={selectedElementId}
                 onSelectElement={handleSelectElement}
                 onWorkspaceClick={handleWorkspaceClick}
@@ -536,7 +400,7 @@ function Presents() {
             <div className="empty-workspace">
               <div className="create-slide-container">
                 <p>Нет выбранного слайда</p>
-                <button onClick={addNewSlide} className="add-slide-button">Создать новый слайд</button>
+                <button onClick={handleAddNewSlide} className="add-slide-button">Создать новый слайд</button>
               </div>
             </div>
           )}
