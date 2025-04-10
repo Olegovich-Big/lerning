@@ -75,7 +75,7 @@
 }
 
 .slide-thumbnail.active {
-  border: 2px solid rgb(247, 227, 5);
+  border-color: rgb(247, 227, 5);
   box-shadow: 0 0 10px rgba(247, 227, 5, 0.3);
 }
 
@@ -183,17 +183,18 @@
 }
 
 .create-slide-button {
-  padding: 10px 20px;
+  padding: 8px 16px;
   background-color: rgb(247, 227, 5);
   color: black;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 16px;
+  margin-top: 10px;
 }
 
 .create-slide-button:hover {
-  background-color: rgb(227, 207, 0);
+  background-color: rgb(255, 235, 0);
 }
 
 .toolbar {
@@ -492,7 +493,7 @@
   justify-content: center;
   gap: 20px;
   color: #666;
-  background-color: #f0f0f0;
+  background-color: transparent;
 }
 
 .empty-workspace p {
@@ -503,13 +504,13 @@
 
 /* Контейнер для кнопки создания слайда */
 .create-slide-container {
-  background-color: white;
   border-radius: 10px;
   padding: 25px;
-  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
   text-align: center;
   max-width: 300px;
   margin: 0 auto;
+  background-color: transparent;
+  box-shadow: none;
 }
 
 /* Интерактивность элементов слайда */
@@ -596,4 +597,229 @@
 .empty-workspace .add-slide-button:active {
   transform: translateY(1px);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Основные стили для редактора презентаций */
+.presentation-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Панель инструментов */
+.toolbar {
+  background-color: #f0f0f0;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+  flex-wrap: wrap;
+}
+
+.toolbar-button {
+  margin: 0 5px;
+  padding: 6px 12px;
+  background-color: #2c3e50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.toolbar-button:hover {
+  background-color: #34495e;
+}
+
+/* Секция для операций с файлами */
+.file-operations {
+  display: flex;
+  margin-right: 15px;
+}
+
+/* Заголовок презентации */
+.presentation-title {
+  flex: 1;
+  margin: 0 10px;
+}
+
+.presentation-title h2 {
+  margin: 0;
+  cursor: pointer;
+  border-bottom: 1px dashed #ccc;
+  display: inline-block;
+}
+
+.presentation-title input {
+  font-size: 1.5em;
+  font-weight: bold;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 5px;
+  width: 300px;
+}
+
+/* Контроли для слайдов */
+.slide-controls, .element-controls {
+  display: flex;
+  margin-left: 10px;
+}
+
+/* Основное содержимое */
+.editor-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Боковая панель со слайдами */
+.slides-sidebar {
+  width: 200px;
+  background-color: #f9f9f9;
+  overflow-y: auto;
+  border-right: 1px solid #ddd;
+  padding: 10px;
+}
+
+/* Стили для миниатюр слайдов */
+.slide-thumbnail {
+  margin-bottom: 10px;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+}
+
+.slide-thumbnail.active {
+  border-color: rgb(247, 227, 5);
+}
+
+.slide-thumbnail-preview {
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+}
+
+.slide-thumbnail-empty {
+  color: #999;
+  font-size: 12px;
+  text-align: center;
+}
+
+.slide-thumbnail-number {
+  position: absolute;
+  bottom: 5px;
+  left: 10px;
+  font-size: 12px;
+  color: #666;
+}
+
+/* Рабочая область */
+.workspace-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e5e5e5;
+  overflow: auto;
+}
+
+.empty-workspace {
+  text-align: center;
+  padding: 20px;
+  color: #777;
+}
+
+.create-slide-button {
+  padding: 8px 16px;
+  background-color: rgb(247, 227, 5);
+  color: black;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.create-slide-button:hover {
+  background-color: rgb(255, 235, 0);
+}
+
+/* Блок отображения ошибок валидации */
+.validation-error {
+  background-color: #ff6b6b;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin: 5px 20px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.validation-error button {
+  background: none;
+  border: none;
+  color: white;
+  font-weight: bold;
+  margin-left: 10px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Адаптивность для разных экранов */
+@media (max-width: 768px) {
+  .editor-content {
+    flex-direction: column;
+  }
+  
+  .slides-sidebar {
+    width: 100%;
+    height: 150px;
+    border-right: none;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 10px;
+  }
+  
+  .slide-thumbnail {
+    margin-right: 10px;
+    margin-bottom: 0;
+    min-width: 120px;
+  }
+  
+  .toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .slide-controls, .element-controls, .file-operations {
+    margin: 5px 0;
+  }
+}
+
+.presentation-actions .toolbar-button {
+  background-color: rgb(247, 227, 5);
+  color: #000;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.presentation-actions .toolbar-button:hover {
+  background-color: rgb(255, 235, 0);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.presentation-actions .toolbar-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 } 

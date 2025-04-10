@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import '../styles/presentation.css';
 import SlideElement from './components/SlideElement';
@@ -14,6 +14,9 @@ import {
   ImgObj,
   Background
 } from '../test';
+import { saveToLocalStorage, loadFromLocalStorage, hasLocalStorageData } from '../utils/localStorage';
+import { exportPresentation, importPresentation } from '../utils/fileOperations';
+import { validateAndGetPresentation, validatePresentationData } from '../utils/validator';
 
 function Presents() {
   // Создаем пустую презентацию
@@ -34,6 +37,44 @@ function Presents() {
   
   // Состояние для отслеживания выбранного элемента
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+  
+  // Состояние для отображения ошибок валидации
+  const [validationError, setValidationError] = useState<string | null>(null);
+  
+  // Загрузка данных из localStorage при монтировании
+  useEffect(() => {
+    if (hasLocalStorageData()) {
+      try {
+        const savedData = loadFromLocalStorage();
+        if (savedData) {
+          // Проверяем валидность данных перед загрузкой
+          try {
+            const validatedData = validateAndGetPresentation(savedData);
+            setPresentation(validatedData);
+            setValidationError(null);
+            // Установка первого слайда как активного, если он есть
+            if (validatedData.slides.length > 0) {
+              setCurrentSlideIndex(0);
+            }
+          } catch (error) {
+            if (error instanceof Error) {
+              setValidationError(error.message);
+            } else {
+              setValidationError('Ошибка валидации данных');
+            }
+            console.error('Ошибка валидации данных из localStorage:', error);
+          }
+        }
+      } catch (error) {
+        console.error('Ошибка при загрузке из localStorage:', error);
+      }
+    }
+  }, []);
+  
+  // Сохранение в localStorage при изменении презентации
+  useEffect(() => {
+    saveToLocalStorage(presentation);
+  }, [presentation]);
   
   // Получение текущего слайда
   const currentSlide = 
@@ -260,13 +301,13 @@ function Presents() {
     }
   };
   
-  // Вспомогательная функция для обновления фона слайда
+  // Функция обновления фона слайда
   const updateSlideBackground = (background: Background) => {
     if (!currentSlide) return;
     
     const updatedSlide = {
       ...currentSlide,
-      background: background
+      background
     };
     
     const newSlides = [...presentation.slides];
@@ -296,51 +337,101 @@ function Presents() {
     setPresentation({...presentation, slides: newSlides});
   };
   
-  // Функция обработки начала перетаскивания слайда
+  // Обработчики для перетаскивания слайдов
   const handleSlideDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
     setDraggedSlideIndex(index);
   };
-  
-  // Функция обработки перетаскивания над другим слайдом
+
   const handleSlideDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
   };
-  
-  // Функция обработки сброса слайда
+
   const handleSlideDrop = (e: React.DragEvent<HTMLDivElement>, targetIndex: number) => {
     e.preventDefault();
     
-    if (draggedSlideIndex === null || draggedSlideIndex === targetIndex) return;
-    
-    const newSlides = [...presentation.slides];
-    const [draggedSlide] = newSlides.splice(draggedSlideIndex, 1);
-    newSlides.splice(targetIndex, 0, draggedSlide);
-    
-    setPresentation({...presentation, slides: newSlides});
-    
-    // Обновляем текущий слайд, если он был перемещен
-    if (currentSlideIndex === draggedSlideIndex) {
-      setCurrentSlideIndex(targetIndex);
-    } else if (
-      (currentSlideIndex < draggedSlideIndex && currentSlideIndex >= targetIndex) ||
-      (currentSlideIndex > draggedSlideIndex && currentSlideIndex <= targetIndex)
-    ) {
-      // Индекс текущего слайда нужно сместить, если слайд был перемещен через него
-      const offset = currentSlideIndex < draggedSlideIndex ? 1 : -1;
-      setCurrentSlideIndex(currentSlideIndex + offset);
+    if (draggedSlideIndex !== null && draggedSlideIndex !== targetIndex) {
+      // Копируем массив слайдов
+      const newSlides = [...presentation.slides];
+      
+      // Получаем перемещаемый слайд
+      const [draggedSlide] = newSlides.splice(draggedSlideIndex, 1);
+      
+      // Вставляем его на новую позицию
+      newSlides.splice(targetIndex, 0, draggedSlide);
+      
+      // Обновляем презентацию
+      setPresentation({...presentation, slides: newSlides});
+      
+      // Корректируем текущий индекс слайда
+      if (currentSlideIndex === draggedSlideIndex) {
+        setCurrentSlideIndex(targetIndex);
+      } else if (
+        currentSlideIndex > draggedSlideIndex && 
+        currentSlideIndex <= targetIndex
+      ) {
+        setCurrentSlideIndex(currentSlideIndex - 1);
+      } else if (
+        currentSlideIndex < draggedSlideIndex && 
+        currentSlideIndex >= targetIndex
+      ) {
+        setCurrentSlideIndex(currentSlideIndex + 1);
+      }
+      
+      // Сбрасываем состояние перетаскивания
+      setDraggedSlideIndex(null);
     }
-    
-    setDraggedSlideIndex(null);
   };
   
-  // Функция для выбора элемента на слайде
+  // Функция выбора элемента
   const handleSelectElement = (elementId: string) => {
     setSelectedElementId(elementId);
   };
   
-  // Функция сброса выбранного элемента при клике на слайд
+  // Функция клика по рабочей области
   const handleWorkspaceClick = () => {
     setSelectedElementId(null);
+  };
+  
+  // Функция экспорта презентации
+  const handleExport = () => {
+    try {
+      exportPresentation(presentation);
+    } catch (error) {
+      console.error('Ошибка при экспорте презентации:', error);
+      alert('Ошибка при экспорте презентации');
+    }
+  };
+  
+  // Функция импорта презентации
+  const handleImport = async () => {
+    try {
+      const importedData = await importPresentation();
+      
+      // Валидация импортированных данных
+      try {
+        const validatedData = validateAndGetPresentation(importedData);
+        setPresentation(validatedData);
+        setValidationError(null);
+        
+        // Установка первого слайда как активного, если он есть
+        if (validatedData.slides.length > 0) {
+          setCurrentSlideIndex(0);
+        } else {
+          setCurrentSlideIndex(-1);
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          setValidationError(error.message);
+        } else {
+          setValidationError('Ошибка валидации импортированных данных');
+        }
+        console.error('Ошибка валидации импортированных данных:', error);
+        alert('Импортированный файл не соответствует формату презентации');
+      }
+    } catch (error) {
+      console.error('Ошибка при импорте презентации:', error);
+      alert('Ошибка при импорте презентации');
+    }
   };
   
   return (
@@ -352,8 +443,9 @@ function Presents() {
             type="text" 
             className="presentation-title" 
             value={presentation.title} 
-            onChange={handleTitleChange}
+            onChange={handleTitleChange} 
             onBlur={() => setIsEditingTitle(false)}
+            onKeyDown={(e) => e.key === 'Enter' && setIsEditingTitle(false)}
             autoFocus
           />
         ) : (
@@ -365,9 +457,18 @@ function Presents() {
           </div>
         )}
         <div className="presentation-actions">
-          <button className="toolbar-button">Экспорт</button>
+          <button className="toolbar-button" onClick={handleExport}>Экспорт</button>
+          <button className="toolbar-button" onClick={handleImport}>Импорт</button>
         </div>
       </div>
+      
+      {/* Отображение ошибок валидации */}
+      {validationError && (
+        <div className="validation-error">
+          Ошибка: {validationError}
+          <button onClick={() => setValidationError(null)}>✕</button>
+        </div>
+      )}
       
       {/* Основное содержимое */}
       <div className="presentation-body">
@@ -382,9 +483,9 @@ function Presents() {
                 index={index}
                 isActive={index === currentSlideIndex}
                 onClick={() => setCurrentSlideIndex(index)}
-                onDragStart={handleSlideDragStart}
+                onDragStart={(e, idx) => handleSlideDragStart(e, idx)}
                 onDragOver={handleSlideDragOver}
-                onDrop={handleSlideDrop}
+                onDrop={(e, idx) => handleSlideDrop(e, idx)}
               />
               <button 
                 className="delete-slide-button"
@@ -410,6 +511,14 @@ function Presents() {
                     <button onClick={() => changeBackground(BackgroundType.image)}>Изображение</button>
                   </div>
                 </div>
+                {selectedElementId && (
+                  <button 
+                    onClick={() => deleteElement(selectedElementId)} 
+                    className="tool-button"
+                  >
+                    Удалить элемент
+                  </button>
+                )}
               </div>
               <Workspace 
                 currentSlide={currentSlide}
