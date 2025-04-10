@@ -33,7 +33,9 @@ import {
   setSelectedElementId,
   setValidationError,
   setEditingTitle,
-  setDraggedSlideIndex
+  setDraggedSlideIndex,
+  undo,
+  redo
 } from '../redux/actions';
 
 function Presents() {
@@ -49,11 +51,57 @@ function Presents() {
     validationError
   } = useSelector((state: RootState) => state.ui);
   
+  // Получаем состояние истории для активации/деактивации кнопок
+  const { past, future } = useSelector((state: RootState) => state.history);
+  
+  // Проверка доступности отмены/повтора
+  const canUndo = past.length > 0;
+  const canRedo = future.length > 0;
+  
   // Получение текущего слайда
   const currentSlide = 
     currentSlideIndex >= 0 && presentation.slides.length > currentSlideIndex 
       ? presentation.slides[currentSlideIndex] 
       : null;
+  
+  // Обработчики для Undo/Redo
+  const handleUndo = () => {
+    if (canUndo) {
+      dispatch({ type: 'UNDO' });
+    }
+  };
+  
+  const handleRedo = () => {
+    if (canRedo) {
+      dispatch({ type: 'REDO' });
+    }
+  };
+  
+  // Обработчик клавиатурных сочетаний
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Если фокус в текстовом редакторе - не обрабатываем
+      if (
+        document.activeElement?.tagName === 'INPUT' || 
+        document.activeElement?.tagName === 'TEXTAREA' ||
+        document.activeElement?.getAttribute('contenteditable') === 'true'
+      ) return;
+      
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
+      
+      if (ctrlKey && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      } else if ((ctrlKey && e.key === 'y') || (ctrlKey && e.shiftKey && e.key === 'z')) {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [canUndo, canRedo]);  // eslint-disable-line react-hooks/exhaustive-deps
   
   // Загрузка данных из localStorage при монтировании
   useEffect(() => {
@@ -321,6 +369,22 @@ function Presents() {
           </div>
         )}
         <div className="presentation-actions">
+          <button 
+            className={`toolbar-button ${!canUndo ? 'disabled' : ''}`} 
+            onClick={handleUndo}
+            title="Отменить (Ctrl+Z)"
+            disabled={!canUndo}
+          >
+            Отменить
+          </button>
+          <button 
+            className={`toolbar-button ${!canRedo ? 'disabled' : ''}`} 
+            onClick={handleRedo}
+            title="Повторить (Ctrl+Y)"
+            disabled={!canRedo}
+          >
+            Повторить
+          </button>
           <button className="toolbar-button" onClick={handleExport}>Экспорт</button>
           <button className="toolbar-button" onClick={handleImport}>Импорт</button>
         </div>

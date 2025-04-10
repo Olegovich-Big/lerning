@@ -228,6 +228,24 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
+.toolbar-button.disabled {
+  background-color: #ddd;
+  color: #888;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.toolbar-button.disabled:hover {
+  background-color: #ddd;
+  transform: none;
+  box-shadow: none;
+}
+
+.presentation-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .toolbar-separator {
   width: 1px;
   background-color: #ddd;

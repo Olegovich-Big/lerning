@@ -16,7 +16,10 @@ import {
   SET_SELECTED_ELEMENT_ID,
   SET_VALIDATION_ERROR,
   SET_EDITING_TITLE,
-  SET_DRAGGED_SLIDE_INDEX
+  SET_DRAGGED_SLIDE_INDEX,
+  UNDO,
+  REDO,
+  ADD_HISTORY_ITEM
 } from './actionTypes';
 import { 
   Presentation, 
@@ -27,6 +30,7 @@ import {
   BackgroundType,
   ElementType
 } from '../test';
+import { HistoryItem } from './reducers';
 
 // Действия для презентации
 export const setPresentation = (presentation: Presentation) => ({
@@ -139,4 +143,20 @@ export const setEditingTitle = (isEditing: boolean) => ({
 export const setDraggedSlideIndex = (index: number | null) => ({
   type: SET_DRAGGED_SLIDE_INDEX,
   payload: index
+});
+
+// Действия для функционала Undo/Redo
+export const addHistoryItem = (historyItem: HistoryItem) => ({
+  type: ADD_HISTORY_ITEM,
+  payload: historyItem
+});
+
+export const undo = (historyItem: HistoryItem) => ({
+  type: UNDO,
+  payload: historyItem
+});
+
+export const redo = (historyItem: HistoryItem) => ({
+  type: REDO,
+  payload: historyItem
 }); 

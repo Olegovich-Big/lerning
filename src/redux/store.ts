@@ -1,6 +1,6 @@
 import { createStore, applyMiddleware, compose } from 'redux';
 import rootReducer from './reducers';
-import { localStorageMiddleware, validationMiddleware } from './middlewares';
+import { localStorageMiddleware, validationMiddleware, historyMiddleware } from './middlewares';
 
 // Проверяем наличие Redux DevTools Extension для улучшенной отладки
 const composeEnhancers = 
@@ -12,6 +12,7 @@ const composeEnhancers =
 // Применяем мидлвары
 const enhancer = composeEnhancers(
   applyMiddleware(
+    historyMiddleware, // Должен быть первым для корректного захвата состояния
     localStorageMiddleware,
     validationMiddleware
   )
