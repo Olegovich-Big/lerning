@@ -47,35 +47,63 @@
 
 .resizeHandle {
   position: absolute;
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   background-color: rgb(247, 227, 5);
   border-radius: 50%;
   z-index: 100;
 }
 
-.resizeHandleTopLeft {
-  top: -4px;
-  left: -4px;
+.topLeft {
+  top: -5px;
+  left: -5px;
   cursor: nwse-resize;
 }
 
-.resizeHandleTopRight {
-  top: -4px;
-  right: -4px;
+.top {
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+
+.topRight {
+  top: -5px;
+  right: -5px;
   cursor: nesw-resize;
 }
 
-.resizeHandleBottomLeft {
-  bottom: -4px;
-  left: -4px;
-  cursor: nesw-resize;
+.right {
+  top: 50%;
+  right: -5px;
+  transform: translateY(-50%);
+  cursor: ew-resize;
 }
 
-.resizeHandleBottomRight {
-  bottom: -4px;
-  right: -4px;
+.bottomRight {
+  bottom: -5px;
+  right: -5px;
   cursor: nwse-resize;
+}
+
+.bottom {
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+
+.bottomLeft {
+  bottom: -5px;
+  left: -5px;
+  cursor: nesw-resize;
+}
+
+.left {
+  top: 50%;
+  left: -5px;
+  transform: translateY(-50%);
+  cursor: ew-resize;
 }
 
 .element-delete-button {
@@ -93,13 +121,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s ease;
   z-index: 10;
-}
-
-.slide-element:hover .element-delete-button {
-  opacity: 1;
 }
 
 .slide-element {
@@ -129,6 +151,11 @@
 .slide-element.dragging {
   opacity: 0.7;
   z-index: 100;
+}
+
+.slide-element.selected {
+  border: 2px solid rgb(247, 227, 5) !important;
+  z-index: 50;
 }
 
 .text-editor {

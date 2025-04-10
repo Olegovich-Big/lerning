@@ -9,6 +9,10 @@ interface WorkspaceProps {
   onDeleteElement?: (elementId: string) => void;
   onUpdateElementText?: (elementId: string, newText: string) => void;
   onUpdateElementPosition?: (elementId: string, x: number, y: number) => void;
+  onUpdateElementSize?: (elementId: string, width: number, height: number) => void;
+  selectedElementId?: string | null;
+  onSelectElement?: (elementId: string) => void;
+  onWorkspaceClick?: () => void;
 }
 
 const Workspace: React.FC<WorkspaceProps> = ({ 
@@ -16,7 +20,11 @@ const Workspace: React.FC<WorkspaceProps> = ({
   workspaceSize,
   onDeleteElement,
   onUpdateElementText,
-  onUpdateElementPosition
+  onUpdateElementPosition,
+  onUpdateElementSize,
+  selectedElementId,
+  onSelectElement,
+  onWorkspaceClick
 }) => {
   const renderBackground = (background: Background | null) => {
     if (!background) {
@@ -46,6 +54,12 @@ const Workspace: React.FC<WorkspaceProps> = ({
     height: `${workspaceSize.height}px`,
   };
 
+  const handleWorkspaceClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget && onWorkspaceClick) {
+      onWorkspaceClick();
+    }
+  };
+
   if (!currentSlide) {
     return (
       <div className={styles.workspace}>
@@ -64,7 +78,11 @@ const Workspace: React.FC<WorkspaceProps> = ({
 
   return (
     <div className={styles.workspace}>
-      <div className={styles.slideWorkspace} style={slideStyle}>
+      <div 
+        className={styles.slideWorkspace} 
+        style={slideStyle} 
+        onClick={handleWorkspaceClick}
+      >
         {currentSlide.elements.length === 0 ? (
           <div className={styles.emptySlide}>Пустой слайд. Добавьте текст или изображение.</div>
         ) : (
@@ -75,6 +93,9 @@ const Workspace: React.FC<WorkspaceProps> = ({
               onDelete={onDeleteElement}
               onUpdateText={onUpdateElementText}
               onUpdatePosition={onUpdateElementPosition}
+              onUpdateSize={onUpdateElementSize}
+              isSelected={element.id === selectedElementId}
+              onSelect={onSelectElement}
             />
           ))
         )}

@@ -29,6 +29,12 @@ function Presents() {
   // Состояние для редактирования имени презентации
   const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
   
+  // Состояние для отслеживания перетаскиваемого слайда
+  const [draggedSlideIndex, setDraggedSlideIndex] = useState<number | null>(null);
+  
+  // Состояние для отслеживания выбранного элемента
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+  
   // Получение текущего слайда
   const currentSlide = 
     currentSlideIndex >= 0 && presentation.slides.length > currentSlideIndex 
@@ -269,6 +275,74 @@ function Presents() {
     setPresentation({...presentation, slides: newSlides});
   };
   
+  // Функция обновления размера элемента
+  const updateElementSize = (elementId: string, width: number, height: number) => {
+    if (!currentSlide) return;
+    
+    const updatedElements = currentSlide.elements.map(element => 
+      element.id === elementId
+        ? { ...element, size: { width, height } }
+        : element
+    );
+    
+    const updatedSlide = {
+      ...currentSlide,
+      elements: updatedElements
+    };
+    
+    const newSlides = [...presentation.slides];
+    newSlides[currentSlideIndex] = updatedSlide;
+    
+    setPresentation({...presentation, slides: newSlides});
+  };
+  
+  // Функция обработки начала перетаскивания слайда
+  const handleSlideDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    setDraggedSlideIndex(index);
+  };
+  
+  // Функция обработки перетаскивания над другим слайдом
+  const handleSlideDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+  
+  // Функция обработки сброса слайда
+  const handleSlideDrop = (e: React.DragEvent<HTMLDivElement>, targetIndex: number) => {
+    e.preventDefault();
+    
+    if (draggedSlideIndex === null || draggedSlideIndex === targetIndex) return;
+    
+    const newSlides = [...presentation.slides];
+    const [draggedSlide] = newSlides.splice(draggedSlideIndex, 1);
+    newSlides.splice(targetIndex, 0, draggedSlide);
+    
+    setPresentation({...presentation, slides: newSlides});
+    
+    // Обновляем текущий слайд, если он был перемещен
+    if (currentSlideIndex === draggedSlideIndex) {
+      setCurrentSlideIndex(targetIndex);
+    } else if (
+      (currentSlideIndex < draggedSlideIndex && currentSlideIndex >= targetIndex) ||
+      (currentSlideIndex > draggedSlideIndex && currentSlideIndex <= targetIndex)
+    ) {
+      // Индекс текущего слайда нужно сместить, если слайд был перемещен через него
+      const offset = currentSlideIndex < draggedSlideIndex ? 1 : -1;
+      setCurrentSlideIndex(currentSlideIndex + offset);
+    }
+    
+    setDraggedSlideIndex(null);
+  };
+  
+  // Функция для выбора элемента на слайде
+  const handleSelectElement = (elementId: string) => {
+    setSelectedElementId(elementId);
+  };
+  
+  // Функция сброса выбранного элемента при клике на слайд
+  const handleWorkspaceClick = () => {
+    setSelectedElementId(null);
+  };
+  
   return (
     <div className="presentation-container">
       {/* Заголовок презентации */}
@@ -308,6 +382,9 @@ function Presents() {
                 index={index}
                 isActive={index === currentSlideIndex}
                 onClick={() => setCurrentSlideIndex(index)}
+                onDragStart={handleSlideDragStart}
+                onDragOver={handleSlideDragOver}
+                onDrop={handleSlideDrop}
               />
               <button 
                 className="delete-slide-button"
@@ -340,6 +417,10 @@ function Presents() {
                 onDeleteElement={deleteElement}
                 onUpdateElementText={updateElementText}
                 onUpdateElementPosition={updateElementPosition}
+                onUpdateElementSize={updateElementSize}
+                selectedElementId={selectedElementId}
+                onSelectElement={handleSelectElement}
+                onWorkspaceClick={handleWorkspaceClick}
               />
             </>
           ) : (
